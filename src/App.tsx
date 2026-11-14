@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import { toBlob, toPng } from 'html-to-image';
 import { ImportControlBar } from './components/ImportControlBar';
 import { SmartReportSheet } from './components/SmartReportSheet';
 import { SpreadsheetDataPanel } from './components/SpreadsheetDataPanel';
@@ -35,7 +35,6 @@ function loadSavedDataset(): ImportedDataset {
           ...autoMapped,
           ...parsed.mapping,
         };
-        // If older cached mapping assigned tempoTransferencia to the header that actually represents horaTransferencia, upgrade it
         if (autoMapped.horaSolicitacao && !mergedMapping.horaSolicitacao) {
           mergedMapping.horaSolicitacao = autoMapped.horaSolicitacao;
         }
@@ -171,8 +170,7 @@ export default function App() {
   const handleExportPng = useCallback(async () => {
     if (activeTab !== 'informativo') {
       setActiveTab('informativo');
-      // Wait next frame so report sheet renders before snapshot
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 150));
     }
     const node = reportSheetRef.current;
     if (!node) return;
@@ -180,16 +178,38 @@ export default function App() {
     setIsExporting(true);
     setErrorMessage(null);
     try {
-      const dataUrl = await toPng(node, {
+      const exportOptions = {
         backgroundColor: '#FFFFFF',
         pixelRatio: 2,
         cacheBust: true,
-      });
-      const safeDate = activeReport.data.replace(/[/\\:\s]+/g, '-');
-      const link = document.createElement('a');
-      link.download = `Informativo_Entrega_Calda_${safeDate}.png`;
-      link.href = dataUrl;
-      link.click();
+        width: node.offsetWidth,
+        height: node.offsetHeight,
+        style: {
+          margin: '0',
+        },
+      };
+      const safeDate = activeReport.data.replace(/[/\\:\s–-]+/g, '-');
+      const fileName = `Informativo_Entrega_Calda_${safeDate}.png`;
+
+      const blob = await toBlob(node, exportOptions);
+      if (blob) {
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = objectUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      } else {
+        const dataUrl = await toPng(node, exportOptions);
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch {
       setErrorMessage('Não foi possível exportar a imagem PNG. Tente usar Imprimir / PDF.');
     } finally {
@@ -250,6 +270,8 @@ export default function App() {
           onFilterChange={setFilters}
           onSheetChange={handleSheetChange}
           onResetDefault={handleResetDefault}
+          onExportPng={handleExportPng}
+          isExporting={isExporting}
           onPrint={handlePrint}
           onOpenMapping={() => setActiveTab('dados')}
           errorMessage={errorMessage}

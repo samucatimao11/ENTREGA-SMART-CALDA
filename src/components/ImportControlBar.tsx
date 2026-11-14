@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { FileSpreadsheet, Printer, RotateCcw, SlidersHorizontal, Upload } from 'lucide-react';
+import { FileSpreadsheet, ImageDown, Printer, RotateCcw, SlidersHorizontal, Upload } from 'lucide-react';
 import type { ImportedDataset, ReportFilters } from '../types/report';
 import { DateRangeCalendarPicker } from './DateRangeCalendarPicker';
 
@@ -15,6 +15,8 @@ interface ImportControlBarProps {
   onFilterChange: (next: ReportFilters) => void;
   onSheetChange: (sheetName: string) => void;
   onResetDefault: () => void;
+  onExportPng: () => void;
+  isExporting: boolean;
   onPrint: () => void;
   onOpenMapping: () => void;
   errorMessage: string | null;
@@ -28,6 +30,8 @@ export const ImportControlBar: React.FC<ImportControlBarProps> = ({
   onFilterChange,
   onSheetChange,
   onResetDefault,
+  onExportPng,
+  isExporting,
   onPrint,
   onOpenMapping,
   errorMessage,
@@ -240,6 +244,16 @@ export const ImportControlBar: React.FC<ImportControlBarProps> = ({
               <span>Mapear Colunas</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={onExportPng}
+            disabled={isExporting}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0B245B] hover:bg-[#133278] rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 cursor-pointer"
+          >
+            <ImageDown className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>{isExporting ? 'Gerando PNG...' : 'Baixar PNG'}</span>
+          </button>
 
           <button
             type="button"

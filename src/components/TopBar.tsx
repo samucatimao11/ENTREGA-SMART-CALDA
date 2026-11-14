@@ -75,7 +75,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-[#0B245B] rounded-lg hover:bg-[#133278] transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 cursor-pointer"
           >
             <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>{isExporting ? 'Gerando PNG...' : 'Exportar PNG'}</span>
+            <span>{isExporting ? 'Gerando PNG...' : 'Baixar PNG'}</span>
           </button>
         </div>
       </div>
