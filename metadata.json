@@ -1,0 +1,6 @@
+{
+  "name": "Entrega de Calda - SMART",
+  "description": "Gerador de informativo operacional Entrega de Calda - SMART com importação automática de planilhas Excel e CSV, filtros dinâmicos e exportação em imagem e PDF.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
