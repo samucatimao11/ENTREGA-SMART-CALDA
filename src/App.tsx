@@ -178,12 +178,15 @@ export default function App() {
     setIsExporting(true);
     setErrorMessage(null);
     try {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        await document.fonts.ready;
+      }
       const exportOptions = {
         backgroundColor: '#FFFFFF',
         pixelRatio: 2,
         cacheBust: true,
         width: node.offsetWidth,
-        height: node.offsetHeight,
+        height: Math.max(node.offsetHeight, node.scrollHeight),
         style: {
           margin: '0',
         },

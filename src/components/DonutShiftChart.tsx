@@ -1,17 +1,9 @@
 import React from 'react';
 import type { ShiftVolume } from '../types/report';
-import { formatVolumePTBR } from '../utils/formatters';
+import { computeDonutLayout, polarToCartesian } from '../utils/donutLayout';
 
 interface DonutShiftChartProps {
   turnos: ShiftVolume[];
-}
-
-function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return {
-    x: cx + r * Math.cos(rad),
-    y: cy + r * Math.sin(rad),
-  };
 }
 
 function describeDonutArc(
@@ -24,7 +16,6 @@ function describeDonutArc(
 ): string {
   const sweep = endAngle - startAngle;
   if (sweep >= 359.99) {
-    // Full circle donut using two semicircles
     const topOuter = polarToCartesian(cx, cy, outerR, 0);
     const botOuter = polarToCartesian(cx, cy, outerR, 180);
     const topInner = polarToCartesian(cx, cy, innerR, 0);
@@ -55,29 +46,27 @@ function describeDonutArc(
   ].join(' ');
 }
 
-function getCalloutBgColor(shiftName: string, sliceColor: string): string {
-  if (shiftName === 'TURNO A') return '#2E2E2E';
-  if (shiftName === 'TURNO B') return '#8E8E8E';
-  if (shiftName === 'TURNO C') return '#3A4B61';
-  return sliceColor;
-}
-
 export const DonutShiftChart: React.FC<DonutShiftChartProps> = ({ turnos }) => {
-  const validTurnos = turnos.filter((t) => t.volume > 0);
-  const total = validTurnos.reduce((acc, t) => acc + t.volume, 0);
+  const layout = computeDonutLayout(turnos);
+  const { width, height, cx, cy, outerR, innerR, total, slices } = layout;
 
-  const width = 320;
-  const height = 228;
-  const cx = 160;
-  const cy = 114;
-  const outerR = 94;
-  const innerR = 46;
-
-  if (total <= 0 || validTurnos.length === 0) {
+  if (total <= 0 || slices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-6">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full max-w-[300px] h-auto" role="img" aria-label="Gráfico de entrega por turno sem dados">
-          <circle cx={cx} cy={cy} r={(outerR + innerR) / 2} fill="none" stroke="#E2E8F0" strokeWidth={outerR - innerR} />
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full max-w-[330px] h-auto"
+          role="img"
+          aria-label="Gráfico de entrega por turno sem dados"
+        >
+          <circle
+            cx={cx}
+            cy={cy}
+            r={(outerR + innerR) / 2}
+            fill="none"
+            stroke="#E2E8F0"
+            strokeWidth={outerR - innerR}
+          />
           <text x={cx} y={cy + 4} textAnchor="middle" fill="#64748B" fontSize="12" fontWeight="700">
             Sem dados no filtro
           </text>
@@ -86,47 +75,38 @@ export const DonutShiftChart: React.FC<DonutShiftChartProps> = ({ turnos }) => {
     );
   }
 
-  let currentAngle = 0;
-  const slices = validTurnos.map((t) => {
-    const angle = (t.volume / total) * 360;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + angle;
-    const midAngle = startAngle + angle / 2;
-    currentAngle = endAngle;
-
-    const labelR = (outerR + innerR) / 2 + 2;
-    const labelPos = polarToCartesian(cx, cy, labelR, midAngle);
-    const formatted = formatVolumePTBR(t.volume);
-    const boxWidth = Math.max(76, formatted.length * 6.8 + 14);
-    const boxHeight = 22;
-
-    // Clamp horizontally inside viewBox so callout badges never clip off left/right edges
-    const clampedX = Math.max(boxWidth / 2 + 4, Math.min(width - boxWidth / 2 - 4, labelPos.x));
-    const clampedY = Math.max(boxHeight / 2 + 4, Math.min(height - boxHeight / 2 - 4, labelPos.y));
-
-    return {
-      ...t,
-      path: describeDonutArc(cx, cy, outerR, innerR, startAngle, endAngle),
-      callX: clampedX,
-      callY: clampedY,
-      boxWidth,
-      boxHeight,
-      formatted,
-      calloutBg: getCalloutBgColor(t.name, t.color),
-    };
-  });
-
   return (
     <div className="flex flex-col items-center">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full max-w-[305px] h-auto overflow-visible"
+        className="w-full max-w-[330px] h-auto"
         role="img"
         aria-label="Gráfico de entrega por turno em litros"
       >
         {slices.map((s) => (
-          <path key={s.name} d={s.path} fill={s.color} />
+          <path
+            key={s.name}
+            d={describeDonutArc(cx, cy, outerR, innerR, s.startAngle, s.endAngle)}
+            fill={s.color}
+          />
         ))}
+
+        {slices.map(
+          (s) =>
+            s.needsLeader && (
+              <g key={`${s.name}-leader`}>
+                <line
+                  x1={s.anchorX}
+                  y1={s.anchorY}
+                  x2={s.callX}
+                  y2={s.callY}
+                  stroke="#475569"
+                  strokeWidth={1.4}
+                />
+                <circle cx={s.anchorX} cy={s.anchorY} r={2.5} fill="#FFFFFF" stroke="#475569" strokeWidth={1.2} />
+              </g>
+            )
+        )}
 
         {slices.map((s) => (
           <g key={`${s.name}-label`} transform={`translate(${s.callX}, ${s.callY})`}>

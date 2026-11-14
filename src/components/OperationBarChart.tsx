@@ -22,29 +22,30 @@ export const OperationBarChart: React.FC<OperationBarChartProps> = ({ operacoes 
       <div className="relative flex flex-col gap-4 sm:gap-5">
         {operacoes.map((op, idx) => {
           const ratio = maxVolume > 0 ? op.volume / maxVolume : 0;
-          // Reserve right room via pr-[84px] so badge on 100% bar sits cleanly without clipping
           const barWidthPercent = Math.max(ratio * 100, op.volume > 0 ? 0.5 : 0);
           const formatted = formatVolumePTBR(op.volume);
-          const overlapTip = ratio >= 0.75;
+          const overlapTip = ratio >= 0.78;
 
           return (
             <div key={`${op.name}-${idx}`} className="grid grid-cols-[126px_1fr] sm:grid-cols-[142px_1fr] items-center gap-2.5">
               <div
-                className="text-right text-[10px] sm:text-[11px] font-extrabold uppercase leading-tight tracking-tight text-[#0B245B] pr-1"
+                className="text-right text-[10px] sm:text-[11px] font-extrabold uppercase leading-tight tracking-tight text-[#0B245B] pr-1 break-words"
                 title={op.name}
               >
                 {op.name}
               </div>
 
-              <div className="relative flex items-center h-[30px] border-l border-slate-300">
-                <div className="relative flex items-center w-full pr-[84px]">
+              <div className="relative flex items-center min-h-[30px] py-0.5 border-l border-slate-300">
+                <div className="relative flex items-center w-full pr-[106px]">
                   <div
-                    className="h-[26px] bg-[#78B72A] transition-[width] duration-200 ease-out shrink-0"
+                    className={`h-[26px] bg-[#78B72A] transition-[width] duration-200 ease-out shrink-0 ${
+                      overlapTip ? 'min-w-[46px]' : ''
+                    }`}
                     style={{ width: `${barWidthPercent}%` }}
                   />
                   <span
                     className={`inline-flex items-center justify-center bg-[#595959] text-white text-[11px] sm:text-[12px] font-bold tabular-nums px-2 py-[3px] rounded-[2px] whitespace-nowrap leading-none ${
-                      overlapTip ? '-ml-10 z-10 shadow-xs' : 'ml-1'
+                      overlapTip ? '-ml-10 z-10 shadow-xs' : 'ml-1.5'
                     }`}
                   >
                     {formatted}

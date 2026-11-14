@@ -28,9 +28,16 @@ export const TopBar: React.FC<TopBarProps> = ({
             e.preventDefault();
             onTabChange('informativo');
           }}
-          className="font-display text-lg font-extrabold tracking-tight text-[#0B245B] whitespace-nowrap shrink-0"
+          className="inline-flex items-center gap-2.5 font-display text-lg font-extrabold tracking-tight text-[#0B245B] whitespace-nowrap shrink-0"
         >
-          Entrega de Calda - SMART
+          <img
+            src="/logo-empresa.png"
+            alt="Logo da empresa"
+            width={28}
+            height={28}
+            className="w-7 h-7 object-contain shrink-0"
+          />
+          <span>Entrega de Calda - SMART</span>
         </a>
 
         {/* Zone 2: Clean single-line text navigation */}

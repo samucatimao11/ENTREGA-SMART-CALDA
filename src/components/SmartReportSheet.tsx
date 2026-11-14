@@ -30,11 +30,18 @@ export const SmartReportSheet: React.FC<SmartReportSheetProps> = ({ report, shee
       data-testid="smart-report-sheet"
       className="print-only-sheet font-report w-full max-w-[1160px] mx-auto bg-white text-[#0B245B] border border-slate-200 shadow-sm px-5 sm:px-7 pt-4 pb-6"
     >
-      {/* Green Main Title */}
-      <header className="pb-2.5">
+      {/* Green Main Title & Company Logo */}
+      <header className="pb-2.5 flex items-center justify-between gap-4">
         <h1 className="text-[24px] sm:text-[32px] font-extrabold uppercase tracking-tight leading-none text-[#78B72A]">
           {report.title}
         </h1>
+        <img
+          src="/logo-empresa.png"
+          alt="Logo da empresa"
+          width={44}
+          height={44}
+          className="w-9 h-9 sm:w-11 sm:h-11 object-contain shrink-0 select-none"
+        />
       </header>
 
       {/* Metadata Band between two solid navy-blue rules */}

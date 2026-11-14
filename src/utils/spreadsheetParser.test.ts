@@ -19,6 +19,49 @@ import {
   buildCalendarMonthGrid,
   getInitialCalendarMonth,
 } from './calendarUtils';
+import { computeDonutLayout } from './donutLayout';
+
+test('computeDonutLayout separates adjacent small-slice callout boxes with zero overlap', () => {
+  const cases = [
+    [
+      { name: 'TURNO A', volume: 120000, color: '#2E2E2E' },
+      { name: 'TURNO B', volume: 150000, color: '#8E8E8E' },
+      { name: 'TURNO C', volume: 5192000, color: '#3A4B61' },
+    ],
+    [
+      { name: 'TURNO A', volume: 50000, color: '#2E2E2E' },
+      { name: 'TURNO B', volume: 55000, color: '#8E8E8E' },
+      { name: 'TURNO C', volume: 60000, color: '#3A4B61' },
+      { name: 'TURNO D', volume: 5000000, color: '#0B245B' },
+    ],
+    [
+      { name: 'TURNO A', volume: 1495322.9, color: '#2E2E2E' },
+      { name: 'TURNO B', volume: 1365374.25, color: '#8E8E8E' },
+      { name: 'TURNO C', volume: 2625690.0, color: '#3A4B61' },
+    ],
+  ];
+
+  for (const turnos of cases) {
+    const { slices, width, height } = computeDonutLayout(turnos);
+    for (let i = 0; i < slices.length; i++) {
+      const a = slices[i];
+      assert.ok(a.callX - a.boxWidth / 2 >= 0);
+      assert.ok(a.callX + a.boxWidth / 2 <= width);
+      assert.ok(a.callY - a.boxHeight / 2 >= 0);
+      assert.ok(a.callY + a.boxHeight / 2 <= height);
+      for (let j = i + 1; j < slices.length; j++) {
+        const b = slices[j];
+        const overlapX = Math.abs(a.callX - b.callX) < (a.boxWidth + b.boxWidth) / 2 + 2;
+        const overlapY = Math.abs(a.callY - b.callY) < (a.boxHeight + b.boxHeight) / 2 + 2;
+        assert.equal(
+          overlapX && overlapY,
+          false,
+          `Overlap detected between ${a.name} (${a.callX},${a.callY}) and ${b.name} (${b.callX},${b.callY})`
+        );
+      }
+    }
+  }
+});
 
 test('formatVolumePTBR formats numbers with PT-BR thousands and two decimals', () => {
   assert.equal(formatVolumePTBR(1495322.9), '1.495.322,90');
